@@ -1,0 +1,10 @@
+"VertexLitGeneric"
+{
+	// Original shader: VertexLitMaskedEnvMappedTexture
+	"$basetexture" "models/Combine_Guard/CombineWeapon"
+	"$envmap" "env_cubemap"
+	"$envmaptint" 0.1 0.1 0.1
+	"$nodecal" 1
+	"$detail" "models/Combine_Guard/guardgun_uvw"
+	"$detailblendfactor" 0.75
+}

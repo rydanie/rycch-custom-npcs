@@ -1,0 +1,7 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "models/Combine_Guard/guardgun_uvw"
+	"$envmapmask" "models/Combine_Guard/guardgun_uvw_m"
+	"$envmap" "models/Combine_Guard/combineguard_envmap"
+	"$selfillum" 1
+}

@@ -1,0 +1,8 @@
+"VertexLitGeneric"
+{
+	// Original shader: VertexLitMaskedEnvMappedTexture
+	"$basetexture" "models/Combine_Guard/handtop"
+	"$envmapmask" "models/Combine_Guard/handtop_mask"
+	"$envmap" "models/Combine_Guard/combineguard_envmap"
+	"$multipass" 1
+}

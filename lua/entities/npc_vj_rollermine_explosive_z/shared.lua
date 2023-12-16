@@ -1,0 +1,7 @@
+ENT.Base 			= "npc_vj_rollermine_z"
+ENT.Type 			= "ai"
+ENT.PrintName 		= "Explosive Rollermine"
+ENT.Author 			= "Zippy"
+ENT.Purpose 		= ""
+ENT.Instructions	= ""
+ENT.Category		= ""

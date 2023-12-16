@@ -1,0 +1,9 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "models/Combine_Guard/torso"
+	"$envmapmask" "models/Combine_Guard/torso_mask"
+	"$envmap" "env_cubemap"
+	"$envmaptint" 0.5 0.5 0.5
+	"$selfillum" 1
+	"$nodecal" 1
+}
