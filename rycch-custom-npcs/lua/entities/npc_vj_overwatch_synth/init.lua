@@ -315,7 +315,19 @@ function ENT:SoldierThink()
                         if IsValid(self) then
                             local moveCheck = VJ_PICK(self:VJ_CheckAllEightSides(math.Rand(50, 150), true, "00110000"))
                             if moveCheck then
-                                self:SetPos(moveCheck+self:GetUp()*60)
+                                local telepos = 0
+                                if navmesh.IsLoaded() then
+                                    local tab = navmesh.Find(self:GetPos(), 2, 2, 2)
+                                    for _, nav in RandomPairs(tab) do
+                                        if IsValid(nav) and not nav:IsUnderwater() then
+                                            telepos = nav:GetClosestPointOnArea( moveCheck)--nav:GetRandomPoint()
+                                            break
+                                        end
+                                    end
+                                else
+                                    telepos = self:GetPos()
+                                end
+                                self:SetPos(telepos+self:GetUp()*10)--moveCheck+self:GetUp()*60)
                             end
 
                             self.portal = ents.Create("env_citadel_energy_core")

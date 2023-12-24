@@ -27,7 +27,7 @@ ENT.Author = "Trench"
 ENT.Purpose = "deployable force shield for blocking income small arms fire- has hp and then is destroyed"
 ENT.RenderGroup = RENDERGROUP_TRANSLUCENT
 ENT.spawnTime = 0
-ENT.totalLifeTime = 30
+ENT.totalLifeTime = 120
 ENT.hp = 6000
 ENT.mmRHAe = 10000 --Controls penetration resistance for ArcCW weapons, high number means no bullets from this pack will penetrate
 
@@ -201,6 +201,17 @@ if SERVER then
                 if(IsValid(self)) then self:Remove() end
             end)
         end)
+
+        self.CoverPoint1 = ents.Create("cover_point")
+        self.CoverPoint1:SetPos(self:GetPos() - (self:GetForward()*40+self:GetRight()*45+self:GetUp()*20))
+        self.CoverPoint1:SetParent(self)
+        self.CoverPoint1:Spawn()
+
+        self.CoverPoint2 = ents.Create("cover_point")
+        self.CoverPoint2:SetPos(self:GetPos() - (self:GetForward()*40+self:GetRight()*-45+self:GetUp()*20))
+        self.CoverPoint2:SetParent(self)
+        self.CoverPoint2:Spawn()
+
     end
 end    
 

@@ -57,7 +57,7 @@ SWEP.Reload_TimeUntilAmmoIsSet	= 0.8 -- Time until ammo is set to the weapon
 local NextFireTimer = CurTime()
 function SWEP:CustomOnPrimaryAttack_BeforeShoot() 
 	if NextFireTimer < CurTime() then 
-		self.NPC_NextPrimaryFire = math.random(0.9, 3)
+		self.NPC_NextPrimaryFire = math.Rand(0.9, 3)
 		self.NPC_TimeUntilFireExtraTimers = self.NPC_TimeUntilFireExtraTimersArray[math.random(1, 5)]
 		NextFireTimer = CurTime() + self.NPC_NextPrimaryFire
 	end

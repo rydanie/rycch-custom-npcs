@@ -78,7 +78,7 @@ function SWEP:NPC_SecondaryFire()
 	local phys = proj:GetPhysicsObject()
 	if IsValid(phys) then
 		phys:Wake()
-		phys:SetVelocity(owner:CalculateProjectile("Line", pos, owner.EnemyData.LastVisiblePos+Vector(0,0,25), 2500))
+		phys:SetVelocity(owner:CalculateProjectile("Line", pos, owner.EnemyData.LastVisiblePos+Vector(0,0,45), 3500))
 	end
 
 	VJ_CreateSound(self, "weapons/irifle/irifle_fire2.wav", 90)
@@ -104,13 +104,14 @@ function SWEP:CustomOnSecondaryAttack()
 			local proj = ents.Create(self.NPC_SecondaryFireEnt)
 			proj:SetPos(owner:GetShootPos())
 			proj:SetAngles(owner:GetAimVector():Angle())
+			proj:SetCollisionGroup(COLLISION_GROUP_WEAPON)
 			proj:SetOwner(owner)
 			proj:Spawn()
 			proj:Activate()
 			local phys = proj:GetPhysicsObject()
 			if IsValid(phys) then
 				phys:Wake()
-				phys:SetVelocity(owner:GetAimVector() * 2000)
+				phys:SetVelocity((owner:GetAimVector()+Vector(0,0,45))*3500)
 			end
 
 			owner:ViewPunch(Angle(-self.Primary.Recoil *3, 0, 0))

@@ -11,6 +11,21 @@ ENT.Category		= "Combine Units +PLUS+"
 ENT.Spawnable		= true
 ENT.AdminOnly		= true
 
+ENT.EntitiesExcludedFromDamage = {"npc_combine_s","npc_metropolice","npc_cscanner","npc_manhack",
+									"npc_stalker","npc_strider","npc_hunter","npc_helicopter","npc_combinegunship",
+									"npc_combinedropship","npc_turret_floor","npc_turret_ceiling","npc_rollermine",
+									"npc_vj_hunter2_z","npc_vj_mini_strider_synth_z","npc_vj_melee_hunter","npc_vj_combine_turret_z",
+									"npc_vj_mortar_synth_z","npc_vj_synth_scanner_z","npc_vj_crabsynth2_z","npc_vj_vortigaunt_synth_z",
+									"npc_vj_cremator_synth_z","npc_vj_assassin_synth_z","npc_vj_city_scanner_z","npc_vj_rollermine_z",
+									"npc_vj_rollermine_explosive_z","obj_vj_hopper_mine_z","npc_assault_synth_custom","npc_vj_combineguard_z",
+									"npc_vj_stalker_z","npc_vj_civil_protection_z","npc_vj_civil_protection_riot","npc_vj_civil_protection_elite_z",
+									"npc_vj_civil_protection_dropshield","npc_vj_civil_protection_heavy","npc_vj_civil_protection_female","npc_vj_civil_protection_sniper",
+									"npc_vj_overwatch_medic","npc_vj_overwatch_jumptrooper","npc_vj_overwatch_dome_shielder_elite","npc_vj_overwatch_synth",
+									"npc_vj_overwatch_soldier_grunt","npc_vj_overwatch_soldier_z","npc_vj_overwatch_soldier_female","npc_vj_overwatch_soldier_turret",
+									"npc_vj_overwatch_shotgunner_z","npc_vj_overwatch_sniper","npc_vj_overwatch_soldier_heavy","npc_vj_overwatch_soldier_elite",
+									"npc_vj_overwatch_assassin_z","npc_vj_overwatch_assassin_melee","npc_vj_novaprospekt_shotgunner_z"
+								}
+
 if SERVER then
 
 	function ENT:Initialize()
@@ -43,7 +58,7 @@ if SERVER then
 	function ENT:TargetNPC(ent)
 		if IsValid(ent) then
 			if self:Visible(ent) and ent:GetPos():Distance(self:GetPos()) < 200 then
-				if ent:GetClass()=="npc_combine_s" or ent:GetClass()=="npc_metropolice" or ent:GetClass()=="npc_cscanner" or ent:GetClass()=="npc_manhack" or ent:GetClass()=="npc_stalker" or ent:GetClass()=="npc_strider" or ent:GetClass()=="npc_hunter" or ent:GetClass()=="npc_helicopter" or ent:GetClass()=="npc_combinegunship" or ent:GetClass()=="npc_combinedropship" or ent:GetClass()=="npc_turret_floor" or ent:GetClass()=="npc_turret_ceiling" or ent:GetClass()=="npc_rollermine" then return end
+				if table.HasValue(self.EntitiesExcludedFromDamage, ent:GetClass()) then return end
 				ent:TakeDamage(2, self, DMG_NERVEGAS)
 			end
 		end

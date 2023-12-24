@@ -56,6 +56,8 @@ ENT.DeathSoundLevel = 70
 
 ENT.MoveOrHideOnDamageByEnemy = true -- Should the SNPC move or hide when being damaged by an enemy?
 ENT.WeaponReload_FindCover = true -- Should it first find cover before reloading?
+ENT.HasWeaponBackAway = true -- Should the SNPC back away if the enemy is close?
+ENT.WeaponBackAway_Distance = 400 -- When the enemy is this close, the SNPC will back away | 0 = Never back away
 
 ENT.GiveHealth = false
 ENT.GiveHealthNPC = false
@@ -298,10 +300,8 @@ function ENT:CustomOnThink()
         end
     end
 
-    for k,v in pairs (ents.GetAll()) do
-        if v:GetPos():Distance(self:GetPos()) < 620 then
-            self:HealAlly(v)
-        end
+    for k,v in pairs (ents.FindInSphere( self:GetPos(), 310 )) do
+        self:HealAlly(v)
     end
 
 end

@@ -65,8 +65,22 @@ for k,v in pairs (ents.GetAll()) do
 self:EatThis(v)
 end
 
+local telepos = 0
+local owner = self:GetOwner()
+if navmesh.IsLoaded() then
+	local tab = navmesh.Find(self:GetPos(), 20, 2, 2)
+	for _, nav in RandomPairs(tab) do
+		if IsValid(nav) and not nav:IsUnderwater() then
+			telepos = nav:GetClosestPointOnArea( self:GetPos() + self:GetRight()*math.random(-60, 60) + self:GetForward()*math.random(-60, 60))--nav:GetRandomPoint()
+			self:GetOwner():SetCollisionGroup(COLLISION_GROUP_DEBRIS_TRIGGER)
+			timer.Simple(.5, function() if IsValid(owner) then owner:SetCollisionGroup(COLLISION_GROUP_NPC) end end)
+			break
+		end
+	end
+end
+
 self.portal = ents.Create("env_citadel_energy_core")
-self.portal:SetPos( self:GetPos() + Vector(0,0,40) )
+self.portal:SetPos( telepos + Vector(0,0,40) )
 self.portal:SetOwner( self.Owner )
 self.portal:SetKeyValue( "scale", "5" )
 --self.portal:SetParent(self)
@@ -82,7 +96,7 @@ self.calleffect:SetMagnitude(1)
 self.calleffect:SetEntity( self.Owner )
 util.Effect( "propspawn", self.calleffect )
 self:EmitSound("SYNTHnade.CUP")
-self.Owner:SetPos(self:GetPos() + Vector(0,0,5))
+self.Owner:SetPos(telepos + Vector(0,0,5))
 elseif (!IsValid(self.Owner)) or self:GetVelocity():Length() >= 20 or self:WaterLevel() > 1 then
 self:EmitSound("SYNTHnadeNope.CUP")
 end

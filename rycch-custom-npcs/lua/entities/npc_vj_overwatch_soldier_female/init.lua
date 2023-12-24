@@ -31,7 +31,7 @@ ENT.Soldier_WeaponSpread = 1.5
 ENT.HasGrenadeAttack = true -- Should the SNPC have a grenade attack?
 ENT.GrenadeAttackEntity = "npc_grenade_frag"--"obj_vj_extractor_z" -- The entity that the SNPC throws | Half Life 2 Grenade: "npc_grenade_frag"
 ENT.ThrowGrenadeChance = math.random(0, 4) -- Chance that it will throw the grenade | Set to 1 to throw all the time
-ENT.ConstantlyFaceEnemyDistance = 700 -- How close does it have to be until it starts to face the enemy?
+ENT.ConstantlyFaceEnemyDistance = 100 -- How close does it have to be until it starts to face the enemy?
 
 ENT.CanBeMedic = true
 
@@ -59,8 +59,12 @@ ENT.AnimTbl_ShootWhileMovingRun = {ACT_RUN_AIM} -- Animations it will play when 
 ENT.AnimTbl_ShootWhileMovingWalk = {ACT_RUN_AIM} -- Animations it will play when shooting while walking
 ENT.AnimTbl_MeleeAttack = {"MeleeAttack01"} -- Melee Attack Animations
 ENT.AnimTbl_GrenadeAttack = {"ThrowItem"} -- Grenade Attack Animations
+ENT.AnimTbl_WeaponAttackSecondary = {"shoot_shotgun"} -- Animations played when the SNPC fires a secondary weapon attack
 
 ENT.wep = "weapon_vj_ar1"
+ENT.ClaimedCoverPoint = nil
+ENT.InCover = false
+ENT.FindCoverTime = 0
 
 local DefaultSoundTbl_MedicAfterHeal = {"items/smallmedkit1.wav"}
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -288,6 +292,69 @@ function ENT:CustomOnThink()
         end
     end
 
+    --Look for a medic
+    if self:Health() < self:GetMaxHealth() then
+        for k,v in pairs (ents.FindInSphere( self:GetPos(), 1000 )) do
+            if v:GetClass() == "npc_vj_overwatch_medic" and self:GetPos():Distance(v:GetPos()) > 310 then
+                self:SetLastPosition(v:GetPos()+v:GetForward()*math.random(-60, 60)+v:GetRight()*math.random(-60, 60))
+                if self:GetWeaponState() == VJ_WEP_STATE_RELOADING then self:SetWeaponState() end
+                self.TakingCoverT = CurTime() + 2
+                canAttack = false
+                self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH", function(x) x:EngTask("TASK_FACE_ENEMY", 0) x.CanShootWhenMoving = true x.ConstantlyFaceEnemy = true end)
+            end 
+        end
+    end
+
+    if IsValid(self:GetEnemy()) then
+        --Look for cover
+        if self.InCover == false then 
+            for k,v in pairs (ents.FindInSphere( self:GetPos(), 1000 )) do
+                if v:GetClass() == "cover_point" and !IsValid(self.ClaimedCoverPoint) then
+                    if v.Occupied == false then
+                        v.Occupied = true
+                        self.ClaimedCoverPoint = v
+                        self:SetLastPosition(v:GetPos())
+                        if self:GetWeaponState() == VJ_WEP_STATE_RELOADING then self:SetWeaponState() end
+                        self.TakingCoverT = CurTime() + 2
+                        canAttack = false
+                        self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
+                    end
+                end 
+            end
+        end
+
+        --Enforce move to claimed cover point
+        if IsValid(self.ClaimedCoverPoint) and self:GetPos():Distance(self.ClaimedCoverPoint:GetPos()) > 20 then
+            print("enforcing point",self)
+            self:SetLastPosition(self.ClaimedCoverPoint:GetPos())
+            if self:GetWeaponState() == VJ_WEP_STATE_RELOADING then self:SetWeaponState() end
+            self.TakingCoverT = CurTime() + 2
+            canAttack = false
+            self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
+        end
+
+        --Duck into cover
+        if IsValid(self.ClaimedCoverPoint) and self.InCover == false and self:GetPos():Distance(self.ClaimedCoverPoint:GetPos()) <= 20 then
+            local coverAnims = {"CoverLow_R","CoverLow_L","Cover_idleD","crouchidlehide","crouch_aim_smg1"}
+            self.InCover = true
+            self.MovementType = VJ_MOVETYPE_STATIONARY
+            self:VJ_ACT_PLAYACTIVITY(coverAnims[ math.random(1,5) ],true, math.random(1, 3),true)
+
+            timer.Simple(8, function() 
+                if IsValid(self) and IsValid(self.ClaimedCoverPoint) then
+                    self.InCover = false
+                end
+            end)
+        end
+    end
+
+    --Clear cover point if it is no longer valid
+    if !IsValid(self.ClaimedCoverPoint) and self.InCover == true then
+        self.InCover = false
+        self.MovementType = VJ_MOVETYPE_GROUND
+        self.ClaimedCoverPoint = nil
+    end
+
 end
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 local turretdistfromself = 65
@@ -387,6 +454,11 @@ function ENT:CustomOnPriorToKilled(dmginfo, hitgroup)
 
     if IsValid(self.TurretProp) && GetConVar("vj_zippycombines_soldier_showturret"):GetInt() > 0 then
         self:CreateGibEntity("obj_vj_gib",self.TurretProp:GetModel(),{BloodType = "", CollideSound = {"SolidMetal.ImpactSoft"}})
+    end
+
+    if IsValid(self.ClaimedCoverPoint) then
+        self.ClaimedCoverPoint.Occupied = false
+        self.ClaimedCoverPoint = nil
     end
 
 end

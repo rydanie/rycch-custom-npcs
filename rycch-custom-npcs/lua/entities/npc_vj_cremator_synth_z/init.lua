@@ -65,8 +65,8 @@ function ENT:CustomOnInitialize()
     self.NextCrematorGunUse = CurTime()
     self.NextBackAwayFromEnemy = CurTime()
 
-    self.BeamMoveNoiseMult1 = math.Rand(0.85, 2.15)
-    self.BeamMoveNoiseMult2 = math.Rand(0.85, 2.15)
+    self.BeamMoveNoiseMult1 = math.Rand(0.85, 4.15)
+    self.BeamMoveNoiseMult2 = math.Rand(0.85, 4.15)
 
     self.PlasmaBurnLoop = CreateSound(self,"npc/cremator/plasma_shoot.wav")
     self.PlasmaBurnLoop:SetSoundLevel(95)

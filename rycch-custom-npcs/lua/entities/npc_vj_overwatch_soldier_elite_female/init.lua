@@ -318,6 +318,19 @@ function ENT:CustomOnThink()
             --print("normal spread")
         end
     end
+
+    --Look for a medic
+    if self.TakingCoverT < CurTime() and self:Health() < self:GetMaxHealth() then
+        for k,v in pairs (ents.FindInSphere( self:GetPos(), 1000 )) do
+            if v:GetClass() == "npc_vj_overwatch_medic" and self:GetPos():Distance(v:GetPos()) > 310 then
+                self:SetLastPosition(v:GetPos()+v:GetForward()*math.random(-60, 60)+v:GetRight()*math.random(-60, 60))
+                if self:GetWeaponState() == VJ_WEP_STATE_RELOADING then self:SetWeaponState() end
+                self.TakingCoverT = CurTime() + 2
+                canAttack = false
+                self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH", function(x) x:EngTask("TASK_FACE_ENEMY", 0) x.CanShootWhenMoving = true x.ConstantlyFaceEnemy = true end)
+            end 
+        end
+    end
 end
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 local turretdistfromself = 65

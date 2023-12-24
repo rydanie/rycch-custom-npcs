@@ -63,7 +63,7 @@ end
 local NextFireTimer = CurTime()
 function SWEP:CustomOnPrimaryAttack_BeforeShoot() 
 	if NextFireTimer < CurTime() then 
-		self.NPC_NextPrimaryFire = math.random(0.9, 3)
+		self.NPC_NextPrimaryFire = math.Rand(0.9, 3)
 		self.NPC_TimeUntilFireExtraTimers = self.NPC_TimeUntilFireExtraTimersArray[math.random(1, 5)]
 		NextFireTimer = CurTime() + self.NPC_NextPrimaryFire
 	end
@@ -108,6 +108,7 @@ function SWEP:CustomOnSecondaryAttack()
 			local proj = ents.Create(self.NPC_SecondaryFireEnt)
 			proj:SetPos(owner:GetShootPos())
 			proj:SetAngles(owner:GetAimVector():Angle())
+			proj:SetCollisionGroup(COLLISION_GROUP_WEAPON)
 			proj:SetOwner(owner)
 			proj:Spawn()
 			proj:Activate()
