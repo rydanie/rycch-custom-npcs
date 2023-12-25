@@ -72,7 +72,7 @@ if navmesh.IsLoaded() then
 	for _, nav in RandomPairs(tab) do
 		if IsValid(nav) and not nav:IsUnderwater() then
 			telepos = nav:GetClosestPointOnArea( self:GetPos() + self:GetRight()*math.random(-60, 60) + self:GetForward()*math.random(-60, 60))--nav:GetRandomPoint()
-			self:GetOwner():SetCollisionGroup(COLLISION_GROUP_DEBRIS_TRIGGER)
+			self:GetOwner():SetCollisionGroup(COLLISION_GROUP_NONE)
 			timer.Simple(.5, function() if IsValid(owner) then owner:SetCollisionGroup(COLLISION_GROUP_NPC) end end)
 			break
 		end

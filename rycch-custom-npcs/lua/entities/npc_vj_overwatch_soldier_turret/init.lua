@@ -343,28 +343,28 @@ function ENT:DeployTurret()
 
     local timeuntildeploy = 1
 
-    --self:VJ_ACT_PLAYACTIVITY("turret_drop",true,timeuntildeploy,true)
---
-    --self.TurretProp:Remove()
-    --self.TurretProp = ents.Create("prop_dynamic")
-    --self.TurretProp:SetModel("models/combine_turrets/floor_turret.mdl")
-    --self.TurretProp:SetPos(self:GetPos())
-    --self.TurretProp:SetAngles(self:GetAngles())
-    --self.TurretProp:SetParent(self,5)
-    --self.TurretProp:Spawn()
-    --self.TurretProp:AddEFlags(EFL_DONTBLOCKLOS)
-    --if GetConVar("vj_zippycombines_soldier_showturret"):GetInt() < 1 then
-    --    self.TurretProp:SetNoDraw(true)
-    --end
+    self:VJ_ACT_PLAYACTIVITY("turret_drop",true,timeuntildeploy,true)
+
+    self.TurretProp:Remove()
+    self.TurretProp = ents.Create("prop_dynamic")
+    self.TurretProp:SetModel("models/combine_turrets/floor_turret.mdl")
+    self.TurretProp:SetPos(self:GetPos())
+    self.TurretProp:SetAngles(self:GetAngles())
+    self.TurretProp:SetParent(self,5)
+    self.TurretProp:Spawn()
+    self.TurretProp:AddEFlags(EFL_DONTBLOCKLOS)
+    if GetConVar("vj_zippycombines_soldier_showturret"):GetInt() < 1 then
+        self.TurretProp:SetNoDraw(true)
+    end
 
     timer.Simple(timeuntildeploy, function() if IsValid(self) then
         self.TurretProp:Remove()
 
-        --local turret = ents.Create("npc_vj_combine_turret_z")
-        --turret:SetPos(self:GetPos()+self:GetForward()*turretdistfromself)
-        --turret:SetAngles(self:GetAngles())
-        --turret:Spawn()
-        --turret.VJ_NPC_Class = self.VJ_NPC_Class
+        local turret = ents.Create("npc_vj_combine_turret_z")
+        turret:SetPos(self:GetPos()+self:GetForward()*turretdistfromself)
+        turret:SetAngles(self:GetAngles())
+        turret:Spawn()
+        turret.VJ_NPC_Class = self.VJ_NPC_Class
 
         self.DeployingTurret = false
     end end)

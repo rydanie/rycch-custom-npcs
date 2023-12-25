@@ -25,10 +25,13 @@ ENT.Type = "anim"
 ENT.Base = "base_gmodentity"
 ENT.Author = "Trench"
 ENT.Purpose = "deployable force shield for blocking income small arms fire- has hp and then is destroyed"
+ENT.PrintName = "Energy Cover Large"
+ENT.Category = "Cover System"
+ENT.Spawnable = true
 ENT.RenderGroup = RENDERGROUP_TRANSLUCENT
 ENT.spawnTime = 0
-ENT.totalLifeTime = 120
-ENT.hp = 6000
+ENT.totalLifeTime = 12000
+ENT.hp = 500
 ENT.mmRHAe = 10000 --Controls penetration resistance for ArcCW weapons, high number means no bullets from this pack will penetrate
 
 local forceShieldImpactSounds = {
@@ -174,9 +177,9 @@ if SERVER then
     function ENT:Initialize()
         self:SetModel( "models/hunter/tubes/tube4x4x1c.mdl" )
         self:SetRenderMode(RENDERMODE_TRANSCOLOR)
-        self:SetMoveType( MOVETYPE_NOCLIP )
+        self:SetMoveType( MOVETYPE_NONE ) --MOVETYPE_NOCLIP )
         self:SetSolid( SOLID_VPHYSICS )
-        self:SetCollisionGroup( COLLISION_GROUP_NONE ) 
+        self:SetCollisionGroup( COLLISION_GROUP_NPC ) 
         self.spawnTime = CurTime()
         --Effects 
         self:SetMaterial("models/props_combine/com_shield001a")--"models/props_combine/stasisshield_sheet")--"models/props_combine/com_shield001a")
@@ -192,15 +195,15 @@ if SERVER then
         timer.Simple( 0, function() self:SetModelScale( 0, 0 ) end) --default of size 0
         timer.Simple( 0, function() self:SetModelScale( 1, .1 ) end ) --grows to size 1
         --Code that defines behavior when entity's lifetime runs out
-        timer.Simple(self.totalLifeTime,function()
-            if(!IsValid(self)) then return end
-            self:EmitSound("ambient/levels/labs/electric_explosion5.wav", 100)
-            self:StopSound("ambient/machines/combine_shield_touch_loop1.wav")
-            self:Flicker()
-            timer.Simple(.48,function()
-                if(IsValid(self)) then self:Remove() end
-            end)
-        end)
+        --timer.Simple(self.totalLifeTime,function()
+        --    if(!IsValid(self)) then return end
+        --    self:EmitSound("ambient/levels/labs/electric_explosion5.wav", 100)
+        --    self:StopSound("ambient/machines/combine_shield_touch_loop1.wav")
+        --    self:Flicker()
+        --    timer.Simple(.48,function()
+        --        if(IsValid(self)) then self:Remove() end
+        --    end)
+        --end)
 
         self.CoverPoint1 = ents.Create("cover_point")
         self.CoverPoint1:SetPos(self:GetPos() - (self:GetForward()*40+self:GetRight()*45+self:GetUp()*20))

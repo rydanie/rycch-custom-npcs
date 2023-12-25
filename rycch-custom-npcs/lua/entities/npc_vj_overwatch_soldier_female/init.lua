@@ -65,6 +65,8 @@ ENT.wep = "weapon_vj_ar1"
 ENT.ClaimedCoverPoint = nil
 ENT.InCover = false
 ENT.FindCoverTime = 0
+ENT.ForceMoveTime = 0
+ENT.StuckJumpTime = 0
 
 local DefaultSoundTbl_MedicAfterHeal = {"items/smallmedkit1.wav"}
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -315,8 +317,7 @@ function ENT:CustomOnThink()
                         self.ClaimedCoverPoint = v
                         self:SetLastPosition(v:GetPos())
                         if self:GetWeaponState() == VJ_WEP_STATE_RELOADING then self:SetWeaponState() end
-                        self.TakingCoverT = CurTime() + 2
-                        canAttack = false
+                        self.StuckJumpTime = CurTime() + 8
                         self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
                     end
                 end 
@@ -324,13 +325,19 @@ function ENT:CustomOnThink()
         end
 
         --Enforce move to claimed cover point
-        if IsValid(self.ClaimedCoverPoint) and self:GetPos():Distance(self.ClaimedCoverPoint:GetPos()) > 20 then
-            print("enforcing point",self)
-            self:SetLastPosition(self.ClaimedCoverPoint:GetPos())
-            if self:GetWeaponState() == VJ_WEP_STATE_RELOADING then self:SetWeaponState() end
-            self.TakingCoverT = CurTime() + 2
-            canAttack = false
-            self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
+        if IsValid(self.ClaimedCoverPoint) and self.ForceMoveTime < CurTime() then
+            self:SetCollisionGroup(COLLISION_GROUP_NPC_SCRIPTED)
+            if self:GetPos():Distance(self.ClaimedCoverPoint:GetPos()) > 20 then
+                    self.ForceMoveTime = CurTime() + 1.5
+                    self:SetLastPosition(self.ClaimedCoverPoint:GetPos())
+                    if self:GetWeaponState() == VJ_WEP_STATE_RELOADING then self:SetWeaponState() end
+                    self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
+                
+                if self.StuckJumpTime < CurTime() then
+                    self.StuckJumpTime = CurTime() + 8
+                    self:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+                end
+            end
         end
 
         --Duck into cover
@@ -338,7 +345,10 @@ function ENT:CustomOnThink()
             local coverAnims = {"CoverLow_R","CoverLow_L","Cover_idleD","crouchidlehide","crouch_aim_smg1"}
             self.InCover = true
             self.MovementType = VJ_MOVETYPE_STATIONARY
+            self:SetCollisionGroup(COLLISION_GROUP_NPC)
             self:VJ_ACT_PLAYACTIVITY(coverAnims[ math.random(1,5) ],true, math.random(1, 3),true)
+            self.AnimTbl_GrenadeAttack = {"throw1"}
+            self.HasGrenadeAttack = false
 
             timer.Simple(8, function() 
                 if IsValid(self) and IsValid(self.ClaimedCoverPoint) then
@@ -353,6 +363,8 @@ function ENT:CustomOnThink()
         self.InCover = false
         self.MovementType = VJ_MOVETYPE_GROUND
         self.ClaimedCoverPoint = nil
+        self.AnimTbl_GrenadeAttack = {"ThrowItem"}
+        self.HasGrenadeAttack = true
     end
 
 end
