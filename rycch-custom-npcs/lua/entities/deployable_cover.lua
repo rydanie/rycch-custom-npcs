@@ -152,7 +152,6 @@ end
         self:SetColor(HPColorValues[HPColorValueIndex])
 
         timer.Simple(0.1, function() if IsValid(self) then self:RemoveAllDecals() end end)
-        print(dmginfo:GetDamagePosition(),dmginfo:GetDamageForce())
     end
 
     function ENT:SetupDataTables()
@@ -206,12 +205,12 @@ if SERVER then
         --end)
 
         self.CoverPoint1 = ents.Create("cover_point")
-        self.CoverPoint1:SetPos(self:GetPos() - (self:GetForward()*40+self:GetRight()*45+self:GetUp()*20))
+        self.CoverPoint1:SetPos(self:GetPos() - (self:GetForward()*20+self:GetRight()*45+self:GetUp()*20))
         self.CoverPoint1:SetParent(self)
         self.CoverPoint1:Spawn()
 
         self.CoverPoint2 = ents.Create("cover_point")
-        self.CoverPoint2:SetPos(self:GetPos() - (self:GetForward()*40+self:GetRight()*-45+self:GetUp()*20))
+        self.CoverPoint2:SetPos(self:GetPos() - (self:GetForward()*20+self:GetRight()*-45+self:GetUp()*20))
         self.CoverPoint2:SetParent(self)
         self.CoverPoint2:Spawn()
 

@@ -139,6 +139,9 @@ VJ.AddNPC_HUMAN("Overwatch Assassin","npc_vj_overwatch_assassin_z",ZippyCombines
 VJ.AddNPC_HUMAN("Overwatch Assassin","npc_vj_overwatch_assassin_melee",ZippyCombines_NPC_Weapons["npc_vj_overwatch_assassin_melee"],vCat)
 VJ.AddNPC_HUMAN("Light Shotgunner","npc_vj_novaprospekt_shotgunner_z",ZippyCombines_NPC_Weapons["npc_vj_novaprospekt_shotgunner_z"],vCat)
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+local vCat = "RYCCH's Friendlies"
+VJ.AddNPC_HUMAN("Overwatch Female Friendly","npc_vj_overwatch_soldier_female_friendly",ZippyCombines_NPC_Weapons["npc_vj_overwatch_soldier_z"],vCat)
+-------------------------------------------------------------------------------------------------------------------------------------------
 function ZIPPYCOMBINES_FadeAndRemove(ent,time)
     timer.Simple(time, function() if IsValid(ent) then
 

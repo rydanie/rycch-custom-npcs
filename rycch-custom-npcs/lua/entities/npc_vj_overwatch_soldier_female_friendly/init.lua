@@ -2,9 +2,9 @@ AddCSLuaFile("shared.lua")
 include("shared.lua")
 
 
-ENT.Model = {"models/custom_with_fem_anims/combine_soldier_prisonguard.mdl"}
+ENT.Model = {"models/alyx2.mdl"}
 ENT.StartHealth = 60
-ENT.VJ_NPC_Class = {"CLASS_COMBINE"}
+ENT.VJ_NPC_Class = {"CLASS_PLAYER_ALLY"} 
 ENT.BloodColor = "Red"
 
 ENT.CallForHelpDistance = 10000
@@ -67,9 +67,6 @@ ENT.InCover = false
 ENT.FindCoverTime = 0
 ENT.ForceMoveTime = 0
 ENT.StuckJumpTime = 0
-
-ENT.EnemyClasses = {"CLASS_PLAYER_ALLY", "CLASS_CITIZEN_REBEL", "CLASS_VORTIGAUNT", "CLASS_CITIZEN_PASSIVE",
-                     "CLASS_PLAYER_ALLY_VITAL", "CLASS_PLAYER" }
 
 local DefaultSoundTbl_MedicAfterHeal = {"items/smallmedkit1.wav"}
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -300,7 +297,7 @@ function ENT:CustomOnThink()
     --Look for a medic
     if self:Health() < self:GetMaxHealth() then
         for k,v in pairs (ents.FindInSphere( self:GetPos(), 1000 )) do
-            if v:GetClass() == "npc_vj_rebel_medic" and self:GetPos():Distance(v:GetPos()) > 310 then
+            if v:GetClass() == "npc_vj_overwatch_medic" and self:GetPos():Distance(v:GetPos()) > 310 then
                 self:SetLastPosition(v:GetPos()+v:GetForward()*math.random(-60, 60)+v:GetRight()*math.random(-60, 60))
                 if self:GetWeaponState() == VJ_WEP_STATE_RELOADING then self:SetWeaponState() end
                 self.TakingCoverT = CurTime() + 2
@@ -318,7 +315,7 @@ function ENT:CustomOnThink()
                     local coverIsSafe = true
                     for i,x in pairs (ents.FindInSphere( v:GetPos(), 100 )) do
                         if x:IsNPC() then
-                            if x.IsVJBaseSNPC and !list.HasEntry( self.VJ_NPC_Class, "CLASS_COMBINE" )  then
+                            if x.IsVJBaseSNPC and !list.HasEntry( self.VJ_NPC_Class, "CLASS_PLAYER_ALLY" )  then
                                 print("Not safe")
                                 coverIsSafe = false
                                 break
@@ -327,7 +324,7 @@ function ENT:CustomOnThink()
                     end
                     for i,x in pairs (ents.FindInCone( v:GetPos(), v:GetForward()*-1, 400,  math.cos( math.rad( 45 ) ) )) do
                         if x:IsNPC() then
-                            if x.IsVJBaseSNPC and !list.HasEntry( self.VJ_NPC_Class, "CLASS_COMBINE" )  then
+                            if x.IsVJBaseSNPC and !list.HasEntry( self.VJ_NPC_Class, "CLASS_PLAYER_ALLY" )  then
                                 print("Not safe")
                                 coverIsSafe = false
                                 break
@@ -356,14 +353,14 @@ function ENT:CustomOnThink()
                 if v:GetClass() == "cover_point" and IsValid(self.ClaimedCoverPoint) and v != self.ClaimedCoverPoint then
                     local coverIsSafe = true
                     for i,x in pairs (ents.FindInSphere( v:GetPos(), 100 )) do
-                        if x.IsVJBaseSNPC and !list.HasEntry( self.VJ_NPC_Class, "CLASS_COMBINE" )  then
+                        if x.IsVJBaseSNPC and !list.HasEntry( self.VJ_NPC_Class, "CLASS_PLAYER_ALLY" )  then
                             print("Not safe")
                             coverIsSafe = false
                             break
                         end
                     end
                     for i,x in pairs (ents.FindInCone( v:GetPos(), v:GetForward()*-1, 400,  math.cos( math.rad( 45 ) ) )) do
-                        if x.IsVJBaseSNPC and !list.HasEntry( self.VJ_NPC_Class, "CLASS_COMBINE" )  then
+                        if x.IsVJBaseSNPC and !list.HasEntry( self.VJ_NPC_Class, "CLASS_PLAYER_ALLY" )  then
                             print("Not safe")
                             coverIsSafe = false
                             break
