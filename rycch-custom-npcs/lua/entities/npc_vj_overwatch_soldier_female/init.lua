@@ -63,10 +63,12 @@ ENT.AnimTbl_WeaponAttackSecondary = {"shoot_shotgun"} -- Animations played when 
 
 ENT.wep = "weapon_vj_ar1"
 ENT.ClaimedCoverPoint = nil
+ENT.OldClaimedCoverPoint = nil
 ENT.InCover = false
 ENT.FindCoverTime = 0
 ENT.ForceMoveTime = 0
 ENT.StuckJumpTime = 0
+ENT.StuckCounter = 0
 
 ENT.EnemyClasses = {"CLASS_PLAYER_ALLY", "CLASS_CITIZEN_REBEL", "CLASS_VORTIGAUNT", "CLASS_CITIZEN_PASSIVE",
                      "CLASS_PLAYER_ALLY_VITAL", "CLASS_PLAYER" }
@@ -316,25 +318,25 @@ function ENT:CustomOnThink()
             for k,v in pairs (ents.FindInSphere( self:GetPos(), 1000 )) do
                 if v:GetClass() == "cover_point" and !IsValid(self.ClaimedCoverPoint) then
                     local coverIsSafe = true
-                    for i,x in pairs (ents.FindInSphere( v:GetPos(), 100 )) do
-                        if x:IsNPC() then
-                            if x.IsVJBaseSNPC and !list.HasEntry( self.VJ_NPC_Class, "CLASS_COMBINE" )  then
-                                print("Not safe")
-                                coverIsSafe = false
-                                break
-                            end
-                        end
-                    end
-                    for i,x in pairs (ents.FindInCone( v:GetPos(), v:GetForward()*-1, 400,  math.cos( math.rad( 45 ) ) )) do
-                        if x:IsNPC() then
-                            if x.IsVJBaseSNPC and !list.HasEntry( self.VJ_NPC_Class, "CLASS_COMBINE" )  then
-                                print("Not safe")
-                                coverIsSafe = false
-                                break
-                            end
-                        end
-                    end
-                    if v.Occupied == false and coverIsSafe == true then
+                    --for i,x in pairs (ents.FindInSphere( v:GetPos(), 100 )) do
+                    --    if x:IsNPC() then
+                    --        if x.IsVJBaseSNPC and !list.HasEntry( self.VJ_NPC_Class, "CLASS_COMBINE" )  then
+                    --            print("Not safe")
+                    --            coverIsSafe = false
+                    --            break
+                    --        end
+                    --    end
+                    --end
+                    --for i,x in pairs (ents.FindInCone( v:GetPos(), v:GetForward()*-1, 400,  math.cos( math.rad( 45 ) ) )) do
+                    --    if x:IsNPC() then
+                    --        if x.IsVJBaseSNPC and !list.HasEntry( self.VJ_NPC_Class, "CLASS_COMBINE" )  then
+                    --            print("Not safe")
+                    --            coverIsSafe = false
+                    --            break
+                    --        end
+                    --    end
+                    --end
+                    if v.Occupied == false and (!IsValid(self.OldClaimedCoverPoint) or v != self.OldClaimedCoverPoint )then
                         print("search and found normal")
                         v.Occupied = true
                         self.ClaimedCoverPoint = v
@@ -355,21 +357,21 @@ function ENT:CustomOnThink()
             for k,v in pairs (ents.FindInSphere( self:GetPos(), 1000 )) do
                 if v:GetClass() == "cover_point" and IsValid(self.ClaimedCoverPoint) and v != self.ClaimedCoverPoint then
                     local coverIsSafe = true
-                    for i,x in pairs (ents.FindInSphere( v:GetPos(), 100 )) do
-                        if x.IsVJBaseSNPC and !list.HasEntry( self.VJ_NPC_Class, "CLASS_COMBINE" )  then
-                            print("Not safe")
-                            coverIsSafe = false
-                            break
-                        end
-                    end
-                    for i,x in pairs (ents.FindInCone( v:GetPos(), v:GetForward()*-1, 400,  math.cos( math.rad( 45 ) ) )) do
-                        if x.IsVJBaseSNPC and !list.HasEntry( self.VJ_NPC_Class, "CLASS_COMBINE" )  then
-                            print("Not safe")
-                            coverIsSafe = false
-                            break
-                        end
-                    end
-                    if v.Occupied == false  and coverIsSafe == true then
+                    --for i,x in pairs (ents.FindInSphere( v:GetPos(), 100 )) do
+                    --    if x.IsVJBaseSNPC and !list.HasEntry( self.VJ_NPC_Class, "CLASS_COMBINE" )  then
+                    --        print("Not safe")
+                    --        coverIsSafe = false
+                    --        break
+                    --    end
+                    --end
+                    --for i,x in pairs (ents.FindInCone( v:GetPos(), v:GetForward()*-1, 400,  math.cos( math.rad( 45 ) ) )) do
+                    --    if x.IsVJBaseSNPC and !list.HasEntry( self.VJ_NPC_Class, "CLASS_COMBINE" )  then
+                    --        print("Not safe")
+                    --        coverIsSafe = false
+                    --        break
+                    --    end
+                    --end
+                    if v.Occupied == false then
                         print("search and found new")
                         self.ClaimedCoverPoint.Occupied = false
                         self.ClaimedCoverPoint = v
@@ -391,14 +393,27 @@ function ENT:CustomOnThink()
             self:SetCollisionGroup(COLLISION_GROUP_NPC_SCRIPTED)
             if self:GetPos():Distance(self.ClaimedCoverPoint:GetPos()) > 20 and self.MovementType == VJ_MOVETYPE_GROUND then
                 print("Enforcing move")
-                self:SetLastPosition(self.ClaimedCoverPoint:GetPos())
                 if self:GetWeaponState() == VJ_WEP_STATE_RELOADING then self:SetWeaponState() end
+                self:SetLastPosition(self.ClaimedCoverPoint:GetPos())
                 self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
                 
                 if self.StuckJumpTime < CurTime() then
-                    self.StuckJumpTime = CurTime() + 8
-                    self:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
-                    self.MovementType = VJ_MOVETYPE_GROUND
+                    self.StuckJumpTime = CurTime() + 6
+                    self.StuckCounter = self.StuckCounter + 1 
+                    local moveCheck = VJ_PICK(self:VJ_CheckAllFourSides(200, true, "0111"))
+                    if moveCheck then
+                        self:SetLastPosition(moveCheck) 
+                        self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH") 
+                    end
+                    if self.StuckCounter >= 3 then
+                        self.StuckCounter = 0
+                        self.OldClaimedCoverPoint = self.ClaimedCoverPoint
+                        self.ClaimedCoverPoint.Occupied = false
+                        self.ClaimedCoverPoint = nil
+                        self.InCover = true
+                    end
+                    --self:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+                    --self.MovementType = VJ_MOVETYPE_GROUND
                 end
             end
         end
@@ -537,6 +552,7 @@ function ENT:CustomOnPriorToKilled(dmginfo, hitgroup)
     if IsValid(self.ClaimedCoverPoint) then
         self.ClaimedCoverPoint.Occupied = false
         self.ClaimedCoverPoint = nil
+        self.InCover = true
     end
 
 end
