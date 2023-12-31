@@ -44,7 +44,7 @@ if SERVER then
 		local self_name = "smokenade" .. self:EntIndex()
 		self:SetName( self_name )
 	end
-
+	--Visable radius
 	function ENT:TargetPlayer(ent)
 		if IsValid(ent) then
 			if ent:IsPlayer() and self:Visible(ent) and ent:GetPos():Distance(self:GetPos()) < 200 then
@@ -54,12 +54,12 @@ if SERVER then
 			end
 		end
 	end
-
+	--Damage radius
 	function ENT:TargetNPC(ent)
 		if IsValid(ent) then
-			if self:Visible(ent) and ent:GetPos():Distance(self:GetPos()) < 200 then
+			if self:Visible(ent) and ent:GetPos():Distance(self:GetPos()) < 170 then
 				if table.HasValue(self.EntitiesExcludedFromDamage, ent:GetClass()) then return end
-				ent:TakeDamage(2, self, DMG_NERVEGAS)
+				ent:TakeDamage(1, self, DMG_NERVEGAS)
 			end
 		end
 	end
