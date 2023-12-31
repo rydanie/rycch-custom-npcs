@@ -11,6 +11,7 @@ ENT.Category		= ""
 ENT.Spawnable		= false
 ENT.AdminOnly		= false
 ENT.Occupied        = false
+ENT.OccupierClass   = nil
 
 if SERVER then
 
