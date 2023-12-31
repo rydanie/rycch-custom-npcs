@@ -140,10 +140,11 @@ end
 function ENT:CheckCoverPointStatus()
     for k,i in pairs (self.CoverPointGroup1) do
         if i.Occupied == true then
-            break
+            return
         end
-        self.Group1SafeClass = nil
     end
+    self.Group1SafeClass = nil
+    print("set class for group 1 to", self.Group1SafeClass)
 end
 
 if SERVER then
@@ -210,47 +211,59 @@ if SERVER then
     end
 
     function ENT:Think()
-
-        if self.ServeQueueTimer < CurTime() and table.Count(self.CoverRequestQueue) > 0 and IsValid(self.CoverRequestQueue[1]) then
+        local QueueNPC = 0
+        local QueuePosition = 0
+        print("Queue size", table.Count(self.CoverRequestQueue) )
+        if self.ServeQueueTimer < CurTime() and table.Count(self.CoverRequestQueue) > 0  then
             self.ServeQueueTimer = CurTime() + 1
-            local QueueNPC = self.CoverRequestQueue[1] 
-
-            --Check which points are safe for the requesting npc
-            if self.Group1SafeClass == nil then
-                self.Group1SafeClass = QueueNPC.VJ_NPC_Class[1]
-                print("set class for group 1 to", self.Group1SafeClass)
-            end 
-
-            print("Safe class group 1", self.Group1SafeClass)
-
-            --Assign available safe cover points
-            if(self.Group1SafeClass == QueueNPC.VJ_NPC_Class[1]) and !IsValid(QueueNPC.ClaimedCoverPoint) then
-                for k,i in pairs (self.CoverPointGroup1) do
-                    if i.Occupied == false and i != QueueNPC.OldClaimedCoverPoint then 
-                        i.Occupied = true
-                        i.OccupierClass = QueueNPC.VJ_NPC_Class[1]
-                        QueueNPC.ClaimedCoverPoint = i 
-                        QueueNPC.CoverEnt = self
-                        print("Set Cover Point Group 1", QueueNPC.ClaimedCoverPoint, i)
-                        --print("Class for group 1 is", QueueNPC.VJ_NPC_Class[1])
-                        table.remove(self.CoverRequestQueue, 1 )
-                        return
-                    end
-                end
-            elseif !IsValid(QueueNPC.ClaimedCoverPoint) then
-                for k,i in pairs (self.CoverPointGroup2) do
-                    if i.Occupied == false then 
-                        i.Occupied = true
-                        i.OccupierClass = QueueNPC.VJ_NPC_Class[1]
-                        QueueNPC.ClaimedCoverPoint = i 
-                        QueueNPC.CoverEnt = self
-                        print("Set Cover Point Group 2", QueueNPC.ClaimedCoverPoint, i)
-                        table.remove(self.CoverRequestQueue, 1 )
-                        return
-                    end               
+            --Count(self.CoverRequestQueue) 
+            for k,i in pairs (self.CoverRequestQueue) do
+                if IsValid(i) then
+                    QueueNPC = self.CoverRequestQueue[k]
+                    QueuePosition = k
+                    break
                 end
             end
-            table.remove(self.CoverRequestQueue, 1 )
+            print("Serving NPC from queue") 
+            
+            if !isnumber(QueueNPC) then
+                --Check which points are safe for the requesting npc
+                if self.Group1SafeClass == nil then
+                    self.Group1SafeClass = QueueNPC.VJ_NPC_Class[1]
+                    print("set class for group 1 to", self.Group1SafeClass)
+                end 
+
+                print("Safe class group 1", self.Group1SafeClass)
+
+                --Assign available safe cover points
+                if self.Group1SafeClass == QueueNPC.VJ_NPC_Class[1] and !IsValid(QueueNPC.ClaimedCoverPoint) then
+                    for k,i in pairs (self.CoverPointGroup1) do
+                        if i.Occupied == false and i != QueueNPC.OldClaimedCoverPoint then 
+                            i.Occupied = true
+                            i.OccupierClass = QueueNPC.VJ_NPC_Class[1]
+                            QueueNPC.ClaimedCoverPoint = i 
+                            QueueNPC.CoverEnt = self
+                            print("Set Cover Point Group 1", QueueNPC.ClaimedCoverPoint, i)
+                            --print("Class for group 1 is", QueueNPC.VJ_NPC_Class[1])
+                            table.remove(self.CoverRequestQueue, 1 )
+                            return
+                        end
+                    end
+                elseif !IsValid(QueueNPC.ClaimedCoverPoint) then
+                    for k,i in pairs (self.CoverPointGroup2) do
+                        if i.Occupied == false then 
+                            i.Occupied = true
+                            i.OccupierClass = QueueNPC.VJ_NPC_Class[1]
+                            QueueNPC.ClaimedCoverPoint = i 
+                            QueueNPC.CoverEnt = self
+                            print("Set Cover Point Group 2", QueueNPC.ClaimedCoverPoint, i)
+                            table.remove(self.CoverRequestQueue, 1 )
+                            return
+                        end               
+                    end
+                end
+            end
+            table.remove(self.CoverRequestQueue, QueuePosition )
         end
     end
 end    

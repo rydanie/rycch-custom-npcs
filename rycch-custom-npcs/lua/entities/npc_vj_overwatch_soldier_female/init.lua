@@ -320,7 +320,7 @@ function ENT:CustomOnThink()
         if self.InCover == false and !IsValid(self.CoverEnt) and self.CoverRequestTimer < CurTime() then 
             self.CoverRequestTimer = CurTime() + 5
             self.MovementType = VJ_MOVETYPE_GROUND
-            for k,v in pairs (ents.FindInSphere( self:GetPos(), 1000 )) do
+            for k,v in pairs (ents.FindInSphere( self:GetPos(), 500 )) do
                 if v.EntType == "Cover" and !IsValid(self.CoverEnt) then
                     v:RequestCover(self)
                     self.StuckJumpTime = CurTime() + 8
@@ -507,6 +507,8 @@ function ENT:CustomOnPriorToKilled(dmginfo, hitgroup)
         self.ClaimedCoverPoint.Occupied = false
         self.ClaimedCoverPoint = nil
         self.InCover = true
+        self.CoverEnt:CheckCoverPointStatus()
+        self.CoverEnt = nil
     end
 
 end
