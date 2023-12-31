@@ -68,6 +68,7 @@ ENT.CoverEnt = nil
 ENT.InCover = false
 ENT.FindCoverTime = 0
 ENT.ForceMoveTime = 0
+ENT.StuckCheckPoint = nil
 ENT.StuckJumpTime = 0
 ENT.CoverRequestTimer = 0
 ENT.StuckCounter = 0
@@ -352,25 +353,31 @@ function ENT:CustomOnThink()
                 if self:GetWeaponState() == VJ_WEP_STATE_RELOADING then self:SetWeaponState() end
                 self:SetLastPosition(self.ClaimedCoverPoint:GetPos())
                 self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
-                
-                if self.StuckJumpTime < CurTime() then
-                    self.StuckJumpTime = CurTime() + 6
-                    self.StuckCounter = self.StuckCounter + 1 
-                    local moveCheck = VJ_PICK(self:VJ_CheckAllFourSides(200, true, "0111"))
-                    if moveCheck then
-                        self:SetLastPosition(moveCheck) 
-                        self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH") 
-                    end
-                    if self.StuckCounter >= 3 then
-                        self.InCover =  false 
-                        if IsValid(self.CoverEnt) then 
-                            self.ClaimedCoverPoint.Occupied = false
-                            self.ClaimedCoverPoint.OccupierClass = nil
-                            self.ClaimedCoverPoint = nil
-                            self.CoverEnt = nil
+
+                --Check if stuck
+                if self.StuckCheckPoint != null then
+                    for k,v in pairs (ents.FindInSphere( self.StuckCheckPoint, 30 )) do
+                        if v == self then
+                            self.StuckCounter = self.StuckCounter + 1 
+                            local moveCheck = VJ_PICK(self:VJ_CheckAllFourSides(200, true, "0111"))
+                            if moveCheck then
+                                self:SetLastPosition(moveCheck) 
+                                self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH") 
+                            end
+                            if self.StuckCounter >= 3 then
+                                self.InCover =  false 
+                                self.StuckCounter = 0
+                                if IsValid(self.CoverEnt) then 
+                                    self.ClaimedCoverPoint.Occupied = false
+                                    self.ClaimedCoverPoint.OccupierClass = nil
+                                    self.ClaimedCoverPoint = nil
+                                    self.CoverEnt = nil
+                                end 
+                            end
                         end 
                     end
                 end
+                self.StuckCheckPoint = self:GetPos()
             end
         end
 
