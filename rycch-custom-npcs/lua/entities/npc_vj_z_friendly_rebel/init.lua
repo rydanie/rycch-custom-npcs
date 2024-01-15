@@ -2,9 +2,9 @@ AddCSLuaFile("shared.lua")
 include("shared.lua")
 
 
-ENT.Model = {"models/custom_with_fem_anims/combine_soldier_prisonguard.mdl"}
+ENT.Model = {"models/Humans/Group03/male_07.mdl"}
 ENT.StartHealth = 60
-ENT.VJ_NPC_Class = {"CLASS_COMBINE"}
+ENT.VJ_NPC_Class = {"CLASS_PLAYER_ALLY"} 
 ENT.BloodColor = "Red"
 
 ENT.CallForHelpDistance = 10000
@@ -308,25 +308,25 @@ function ENT:CustomOnThink()
         end
     end
 
-    --Look for a medic
-    if self:Health() < self:GetMaxHealth()*0.75 and self.InCover == false and self.CheckForMedicTime < CurTime() then
-        self.CheckForMedicTime = CurTime() + 2
-        for k,v in pairs (ents.FindInSphere( self:GetPos(), 1000 )) do
-            if v:GetClass() == "npc_vj_rebel_medic" and self:GetPos():Distance(v:GetPos()) > 310 then
-                self:SetLastPosition(v:GetPos()+v:GetForward()*math.random(-60, 60)+v:GetRight()*math.random(-60, 60))
-                if self:GetWeaponState() == VJ_WEP_STATE_RELOADING then self:SetWeaponState() end
-                self.CheckForMedicTime = CurTime() + 2
-                canAttack = false
-                self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH", function(x) x:EngTask("TASK_FACE_ENEMY", 0) x.CanShootWhenMoving = true x.ConstantlyFaceEnemy = true end)
-            end 
-        end
+--Look for a medic
+if self:Health() < self:GetMaxHealth() and self.InCover == false and self.CheckForMedicTime < CurTime() then
+    self.CheckForMedicTime = CurTime() + 2
+    for k,v in pairs (ents.FindInSphere( self:GetPos(), 1000 )) do
+        if v:GetClass() == "npc_vj_rebel_medic" and self:GetPos():Distance(v:GetPos()) > 310 then
+            self:SetLastPosition(v:GetPos()+v:GetForward()*math.random(-60, 60)+v:GetRight()*math.random(-60, 60))
+            if self:GetWeaponState() == VJ_WEP_STATE_RELOADING then self:SetWeaponState() end
+            self.CheckForMedicTime = CurTime() + 2
+            canAttack = false
+            self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH", function(x) x:EngTask("TASK_FACE_ENEMY", 0) x.CanShootWhenMoving = true x.ConstantlyFaceEnemy = true end)
+        end 
     end
+end
 
     --Run from Grenade
     if self.ThrowingGrenade == true then self.WaitWhileThrowingGrenadeTime = CurTime() + 1 end
     if self.IsRunningFromHazard == false and self.WaitWhileThrowingGrenadeTime < CurTime() then
         for k,v in pairs (ents.FindInSphere( self:GetPos(), 200 )) do
-            if v:GetClass() == "npc_grenade_frag" then
+            if v:GetClass() == "npc_grenade_frag" or v:GetClass() == "cup_gas_nade" then
                 self.IsRunningFromHazard = true
                 self.FindCoverTime = CurTime()
                 self.AnimTbl_Run = {ACT_RUN_PROTECTED}
@@ -350,6 +350,107 @@ function ENT:CustomOnThink()
         self:CoverThink()
     end
 
+end
+
+function ENT:CoverThink()
+    if IsValid(self:GetEnemy()) then
+        --Look for cover
+        if self.InCover == false and !IsValid(self.CoverEnt) and self.CoverRequestTimer < CurTime() then 
+            self.CoverRequestTimer = CurTime() + 5
+            self.MovementType = VJ_MOVETYPE_GROUND
+            for k,v in pairs (ents.FindInSphere( self:GetPos(), 500 )) do
+                if v.EntType == "Cover" and !IsValid(self.CoverEnt) then
+                    v:RequestCover(self)
+                    self.StuckJumpTime = CurTime() + 8
+                    self.FindCoverTime = CurTime() + 25
+                end 
+            end
+        end
+        
+        --Look for new cover
+        if self.FindCoverTime < CurTime() then 
+            self.InCover =  false 
+            self.OldClaimedCoverPoint = self.ClaimedCoverPoint
+            if IsValid(self.CoverEnt) then 
+                self.ClaimedCoverPoint.Occupied = false
+                self.ClaimedCoverPoint.OccupierClass = nil
+                self.ClaimedCoverPoint = nil
+                self.CoverEnt:CheckCoverPointStatus()
+                self.CoverEnt = nil
+            end 
+            self.StuckJumpTime = CurTime() + 6
+        end
+
+        --Enforce move to claimed cover point
+        if IsValid(self.ClaimedCoverPoint) and self.ForceMoveTime < CurTime() and self.InCover == false then
+            self.ForceMoveTime = CurTime() + 1.5
+            self:EnforceMoveToCover()
+        end
+
+        --Duck into cover
+        if IsValid(self.ClaimedCoverPoint) and self.InCover == false and self:GetPos():Distance(self.ClaimedCoverPoint:GetPos()) <= 20 and self.StuckJumpTime > CurTime() then
+
+            self.InCover = true
+            self.MovementType = VJ_MOVETYPE_STATIONARY
+            self:SetCollisionGroup(COLLISION_GROUP_NPC)
+            if self:GetWeaponState() != VJ_WEP_STATE_RELOADING then 
+                self:VJ_ACT_PLAYACTIVITY(self.coverAnims[ math.random(1,5) ],true, math.random(1, 3),true)
+            end
+            self.AnimTbl_GrenadeAttack = {"throw1"}
+            self.HasGrenadeAttack = false
+        end
+    end
+
+    --Clear cover point if it is no longer valid or no longer have an enemy
+    if !IsValid(self.CoverEnt) and self.InCover == true or !IsValid(self:GetEnemy()) then
+        if IsValid(self.ClaimedCoverPoint) then 
+            self.ClaimedCoverPoint.Occupied = false 
+            self.CoverEnt:CheckCoverPointStatus()
+        end
+        self.InCover = false
+        self.MovementType = VJ_MOVETYPE_GROUND
+        self.ClaimedCoverPoint = nil
+        self.CoverEnt = nil
+        self.AnimTbl_GrenadeAttack = {"ThrowItem"}
+        self.HasGrenadeAttack = true
+    end
+end 
+
+function ENT:EnforceMoveToCover()
+    self:SetCollisionGroup(COLLISION_GROUP_NPC_SCRIPTED)
+    if self:GetPos():Distance(self.ClaimedCoverPoint:GetPos()) > 20 and self.MovementType == VJ_MOVETYPE_GROUND then
+        print("Enforcing move")
+        if self:GetWeaponState() == VJ_WEP_STATE_RELOADING then self:SetWeaponState() end
+        self:SetLastPosition(self.ClaimedCoverPoint:GetPos())
+        self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
+
+        --Check if stuck
+        if self.StuckCheckPoint != null then
+            for k,v in pairs (ents.FindInSphere( self.StuckCheckPoint, 30 )) do
+                if v == self then
+                    self.StuckCounter = self.StuckCounter + 1 
+                    local moveCheck = VJ_PICK(self:VJ_CheckAllFourSides(200, true, "0111"))
+                    if moveCheck then
+                        self:SetLastPosition(moveCheck) 
+                        self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH") 
+                    end
+                    if self.StuckCounter >= 3 then
+                        self.InCover =  false 
+                        self.StuckCounter = 0
+                        if IsValid(self.CoverEnt) then 
+                            self.ClaimedCoverPoint.Occupied = false
+                            self.ClaimedCoverPoint.OccupierClass = nil
+                            self.ClaimedCoverPoint = nil
+                            self.CoverEnt = nil
+                        end 
+                    end
+                end 
+            end
+        end
+        self.StuckCheckPoint = self:GetPos()
+    elseif self:GetPos():Distance(self.ClaimedCoverPoint:GetPos()) < 20 and self.InCover == false then
+        self.MovementType = VJ_MOVETYPE_STATIONARY
+    end
 end
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 local turretdistfromself = 65
@@ -497,104 +598,5 @@ function ENT:SetUpGibesOnDeath(dmginfo,hitgroup)
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CoverThink()
-    if IsValid(self:GetEnemy()) then
-        --Look for cover
-        if self.InCover == false and !IsValid(self.CoverEnt) and self.CoverRequestTimer < CurTime() then 
-            self.CoverRequestTimer = CurTime() + 5
-            self.MovementType = VJ_MOVETYPE_GROUND
-            for k,v in pairs (ents.FindInSphere( self:GetPos(), 500 )) do
-                if v.EntType == "Cover" and !IsValid(self.CoverEnt) then
-                    v:RequestCover(self)
-                    self.StuckJumpTime = CurTime() + 8
-                    self.FindCoverTime = CurTime() + 25
-                end 
-            end
-        end
-        
-        --Look for new cover
-        if self.FindCoverTime < CurTime() then 
-            self.InCover =  false 
-            self.OldClaimedCoverPoint = self.ClaimedCoverPoint
-            if IsValid(self.CoverEnt) then 
-                self.ClaimedCoverPoint.Occupied = false
-                self.ClaimedCoverPoint.OccupierClass = nil
-                self.ClaimedCoverPoint = nil
-                self.CoverEnt:CheckCoverPointStatus()
-                self.CoverEnt = nil
-            end 
-            self.StuckJumpTime = CurTime() + 6
-        end
 
-        --Enforce move to claimed cover point
-        if IsValid(self.ClaimedCoverPoint) and self.ForceMoveTime < CurTime() and self.InCover == false then
-            self.ForceMoveTime = CurTime() + 1.5
-            self:EnforceMoveToCover()
-        end
-
-        --Duck into cover
-        if IsValid(self.ClaimedCoverPoint) and self.InCover == false and self:GetPos():Distance(self.ClaimedCoverPoint:GetPos()) <= 20 and self.StuckJumpTime > CurTime() then
-
-            self.InCover = true
-            self.MovementType = VJ_MOVETYPE_STATIONARY
-            self:SetCollisionGroup(COLLISION_GROUP_NPC)
-            if self:GetWeaponState() != VJ_WEP_STATE_RELOADING then 
-                self:VJ_ACT_PLAYACTIVITY(self.coverAnims[ math.random(1,5) ],true, math.random(1, 3),true)
-            end
-            self.AnimTbl_GrenadeAttack = {"throw1"}
-            self.HasGrenadeAttack = false
-        end
-    end
-
-    --Clear cover point if it is no longer valid or no longer have an enemy
-    if !IsValid(self.CoverEnt) and self.InCover == true or !IsValid(self:GetEnemy()) then
-        if IsValid(self.ClaimedCoverPoint) then 
-            self.ClaimedCoverPoint.Occupied = false 
-            self.CoverEnt:CheckCoverPointStatus()
-        end
-        self.InCover = false
-        self.MovementType = VJ_MOVETYPE_GROUND
-        self.ClaimedCoverPoint = nil
-        self.CoverEnt = nil
-        self.AnimTbl_GrenadeAttack = {"ThrowItem"}
-        self.HasGrenadeAttack = true
-    end
-end 
-
-function ENT:EnforceMoveToCover()
-    self:SetCollisionGroup(COLLISION_GROUP_NPC_SCRIPTED)
-    if self:GetPos():Distance(self.ClaimedCoverPoint:GetPos()) > 20 and self.MovementType == VJ_MOVETYPE_GROUND then
-        print("Enforcing move")
-        if self:GetWeaponState() == VJ_WEP_STATE_RELOADING then self:SetWeaponState() end
-        self:SetLastPosition(self.ClaimedCoverPoint:GetPos())
-        self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
-
-        --Check if stuck
-        if self.StuckCheckPoint != null then
-            for k,v in pairs (ents.FindInSphere( self.StuckCheckPoint, 30 )) do
-                if v == self then
-                    self.StuckCounter = self.StuckCounter + 1 
-                    local moveCheck = VJ_PICK(self:VJ_CheckAllFourSides(200, true, "0111"))
-                    if moveCheck then
-                        self:SetLastPosition(moveCheck) 
-                        self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH") 
-                    end
-                    if self.StuckCounter >= 3 then
-                        self.InCover =  false 
-                        self.StuckCounter = 0
-                        if IsValid(self.CoverEnt) then 
-                            self.ClaimedCoverPoint.Occupied = false
-                            self.ClaimedCoverPoint.OccupierClass = nil
-                            self.ClaimedCoverPoint = nil
-                            self.CoverEnt = nil
-                        end 
-                    end
-                end 
-            end
-        end
-        self.StuckCheckPoint = self:GetPos()
-    elseif self:GetPos():Distance(self.ClaimedCoverPoint:GetPos()) < 20 and self.InCover == false then
-        self.MovementType = VJ_MOVETYPE_STATIONARY
-    end
-end
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

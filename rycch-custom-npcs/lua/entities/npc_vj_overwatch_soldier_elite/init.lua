@@ -54,6 +54,7 @@ ENT.OnKilledEnemySoundLevel = 70
 ENT.AllyDeathSoundLevel = 70
 ENT.PainSoundLevel = 70
 ENT.DeathSoundLevel = 70
+ENT.RollerMine = nil
 
 ENT.wep = "weapon_vj_ar2_m"
 
@@ -278,6 +279,7 @@ function ENT:DeployRollerMine()
         manhack:SetPos(self:GetPos() + self:GetForward()*50 + self:GetUp()*13 + self:GetRight()*-10)
         manhack:SetAngles(self:GetAngles())
         manhack:Spawn()
+        self.RollerMine = manhack
 
         self.portal = ents.Create("env_citadel_energy_core")
         self.portal:SetPos( manhack:GetPos() )
@@ -296,7 +298,7 @@ end
 local DeployMineTimer = CurTime()+10
 function ENT:SoldierThink() 
     if !IsValid(self:GetEnemy()) then return end
-    if DeployMineTimer < CurTime() then
+    if DeployMineTimer < CurTime() and !IsValid(self.RollerMine) then
         self:DeployRollerMine()
         DeployMineTimer = CurTime()+math.random(15, 30)
     end

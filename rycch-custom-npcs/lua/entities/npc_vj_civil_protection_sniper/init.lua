@@ -5,7 +5,7 @@ include("vj_base/npc_movetype_aa.lua")
 include("shared.lua")
 
 ENT.Model = {"models/DPFilms/Metropolice/female_police.mdl"}
-ENT.StartHealth = 60
+ENT.StartHealth = 30
 ENT.VJ_NPC_Class = {"CLASS_COMBINE"}
 ENT.BloodColor = "Red"
 

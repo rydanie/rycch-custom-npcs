@@ -39,18 +39,18 @@ ENT.TurretDeployDist = 2000
 
 ENT.FootStepSoundLevel = 60
 ENT.IdleSoundLevel = 65
-ENT.IdleDialogueSoundLevel = 65
-ENT.IdleDialogueAnswerSoundLevel = 65
-ENT.CombatIdleSoundLevel = 70
-ENT.InvestigateSoundLevel = 70
-ENT.LostEnemySoundLevel = 65
-ENT.AlertSoundLevel = 70
+ENT.IdleDialogueSoundLevel = 75
+ENT.IdleDialogueAnswerSoundLevel = 75
+ENT.CombatIdleSoundLevel = 80
+ENT.InvestigateSoundLevel = 80
+ENT.LostEnemySoundLevel = 75
+ENT.AlertSoundLevel = 80
 ENT.WeaponReloadSoundLevel = 60
 ENT.GrenadeAttackSoundLevel = 70
-ENT.OnGrenadeSightSoundLevel = 70
-ENT.OnDangerSightSoundLevel = 70
-ENT.OnKilledEnemySoundLevel = 70
-ENT.AllyDeathSoundLevel = 70
+ENT.OnGrenadeSightSoundLevel = 80
+ENT.OnDangerSightSoundLevel = 80
+ENT.OnKilledEnemySoundLevel = 80
+ENT.AllyDeathSoundLevel = 80
 ENT.PainSoundLevel = 70
 ENT.DeathSoundLevel = 70
 
@@ -62,6 +62,7 @@ ENT.WeaponBackAway_Distance = 400 -- When the enemy is this close, the SNPC will
 ENT.GiveHealth = false
 ENT.GiveHealthNPC = false
 ENT.wep = "weapon_vj_ar2_m"
+ENT.CheckForMedicTime = CurTime()
 
 local DefaultSoundTbl_MedicAfterHeal = {"items/smallmedkit1.wav"}
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -302,6 +303,21 @@ function ENT:CustomOnThink()
 
     for k,v in pairs (ents.FindInSphere( self:GetPos(), 310 )) do
         self:HealAlly(v)
+    end
+
+    if self.CheckForMedicTime < CurTime() then
+        for k,v in pairs (ents.FindInSphere( self:GetPos(), 1000 )) do
+            if IsValid(v) and v:IsNPC() and v != self and v.VJ_NPC_Class != nil 
+                and v.VJ_NPC_Class[1] == "CLASS_COMBINE" and v:Health() <= v:GetMaxHealth()*0.75 
+                and self:GetPos():Distance(v:GetPos()) > 310 then
+
+                self:SetLastPosition(v:GetPos()+v:GetForward()*math.random(-60, 60)+v:GetRight()*math.random(-60, 60))
+                if self:GetWeaponState() == VJ_WEP_STATE_RELOADING then self:SetWeaponState() end
+                self.CheckForMedicTime = CurTime() + 2
+                canAttack = false
+                self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
+            end 
+        end
     end
 
 end
